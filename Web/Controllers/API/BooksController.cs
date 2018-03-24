@@ -21,5 +21,36 @@ namespace Web.Controllers.API
             var books = _bookService.SearchForBook(query);
             return books;
         }
+
+
+        [HttpGet]
+        [Route("{userid}")]
+        public List<BookDTO> GetLibraryFor(string userid)
+        {
+            try
+            {
+                return _bookService.GetLibraryFor(userid);
+            }catch(Exception)
+            {
+                throw new HttpRequestException("Could not load books for the user");
+            }
+        }
+
+
+        [HttpPost]
+        [Route("{userid}")]
+        public HttpResponseMessage AddBookToLibrary([FromUri] string userid,[FromBody]string bookId)
+        {
+            try
+            {
+                _bookService.AddBookToLibrary(userid, new Guid(bookId));
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            catch(Exception e)
+            {
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.BadRequest,e.Message);
+                return response;
+            }
+        }
     }
 }

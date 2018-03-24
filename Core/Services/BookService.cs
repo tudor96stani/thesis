@@ -21,5 +21,49 @@ namespace Core.Services
                     .Select(x => x.ToDTO()).ToList();
             }
         }
+
+
+        public void AddBookToLibrary(string UserId,Guid BookId,bool Public = true)
+        {
+            using (var context = new ApplicationDbContext())
+            {
+                UsersBooks UserBookEntry = new UsersBooks()
+                {
+                    BookId = BookId,
+                    UserId = UserId,
+                    Public = Public,
+                    Borrowed = false
+                };
+                ApplicationUser user = context.Users.Include(x=>x.Books).FirstOrDefault(x => x.Id == UserId);
+                if (user == null)
+                    throw new Exception("User with given ID does not exist");
+                
+
+                Book book = context.Books.Include(x => x.Owners).FirstOrDefault(x => x.Id == BookId);
+                if (book == null)
+                    throw new Exception("Book with given ID does not exist");
+
+                
+                var addResult = context.UsersBooks.Add(UserBookEntry);
+                if (addResult == null)
+                    throw new Exception("Could not add book to library.");
+
+                user.Books.Add(UserBookEntry);
+                book.Owners.Add(UserBookEntry);
+                context.SaveChanges();
+            }
+        }
+
+        public List<BookDTO> GetLibraryFor(string UserId)
+        {
+            using (var context = new ApplicationDbContext())
+            {
+                List<Guid> userBookIds = context.Users.Include(x=>x.Books).FirstOrDefault(x => x.Id == UserId)
+                    .Books.Select(x=>x.BookId).ToList();
+                List<BookDTO> actualBooks = context.Books.Where(x => userBookIds.Contains(x.Id))
+                    .ToList().Select(x => x.ToDTO()).ToList();
+                return actualBooks;
+            }
+        }
     }
 }

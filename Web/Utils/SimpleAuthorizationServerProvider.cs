@@ -9,8 +9,6 @@ namespace Web.Utils
 {
     public class SimpleAuthorizationServerProvider : OAuthAuthorizationServerProvider
     {
-        
-        //private readonly ApplicationSignInManager SignInManager = HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
         public override async Task ValidateClientAuthentication(OAuthValidateClientAuthenticationContext context)
         {
             context.Validated();
@@ -29,10 +27,7 @@ namespace Web.Utils
                     context.SetError("invalid_grant", "The user name or password is incorrect.");
                     return;
                 }
-
                 var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                
-                
                 AuthenticationProperties properties = CreateProperties(user.UserName, user.Id.ToString(), context.ClientId);
                 AuthenticationTicket ticket = new AuthenticationTicket(identity, properties);
                 context.Validated(ticket);

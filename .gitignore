@@ -261,5 +261,4 @@ __pycache__/
 *.pyc
 
 
-Web.config
-app.config
+Web/Web.config
