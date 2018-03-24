@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using Web.Models.ViewModels;
 
 namespace Web.Controllers.API
 {
@@ -48,7 +49,30 @@ namespace Web.Controllers.API
             }
             catch(Exception e)
             {
-                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.BadRequest,e.Message);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError,e.Message);
+                return response;
+            }
+        }
+
+        [HttpPost]
+        [Route("addnew")]
+        public HttpResponseMessage AddNewBookToLibrary(NewBookViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return new HttpResponseMessage(HttpStatusCode.BadRequest);
+
+            try
+            {
+                _bookService.AddNewBookToLibrary(model.UserId, new BookDTO()
+                {
+                    Title = model.Title,
+                    Year = model.Year,
+                    Publisher = model.Publisher
+                }, model.Authors);
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }catch(Exception e)
+            {
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, e.Message);
                 return response;
             }
         }

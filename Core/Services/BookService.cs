@@ -54,6 +54,46 @@ namespace Core.Services
             }
         }
 
+        public void AddNewBookToLibrary(string UserId,BookDTO book,List<string> authorNames)
+        {
+            using (var context = new ApplicationDbContext())
+            {
+                List<Author> authors = context.Authors.Where(x => authorNames.Contains(x.FullName)).ToList();
+                if(authorNames.Count!=authors.Count)
+                {
+                    IEnumerable<string> newAuthors = authorNames.Except(authors.Select(x => x.FullName));
+                    List<Author> newAuthorsObjects = new List<Author>();
+                    foreach(var newAuth in newAuthors)
+                    {
+                        newAuthorsObjects.Add(new Author()
+                        {
+                            Id=Guid.NewGuid(),
+                            FullName = newAuth
+                        });
+                    }
+                    context.Authors.AddRange(newAuthorsObjects);
+                    authors.AddRange(newAuthorsObjects);
+                    //context.SaveChanges();
+                }
+
+                Book bookObj = new Book()
+                {
+                    Id = Guid.NewGuid(),
+                    Title = book.Title,
+                    Year = book.Year,
+                    Publisher = book.Publisher
+                };
+                bookObj.Authors = authors;
+                context.Books.Add(bookObj);
+                foreach(var author in authors)
+                {
+                    author.Books.Add(bookObj);
+                }
+                context.SaveChanges();
+                this.AddBookToLibrary(UserId, bookObj.Id);
+            }
+        }
+
         public List<BookDTO> GetLibraryFor(string UserId)
         {
             using (var context = new ApplicationDbContext())

@@ -10,11 +10,11 @@ namespace Core.DAL
     {
         [Key]
         public Guid Id { get; set; }
-        [Required]
+        
         public string FirstName { get; set; }
-        [Required]
+        
         public string LastName { get; set; }
-        public DateTime Birthdate { get; set; }
+       
         public virtual ICollection<Book> Books { get; set; }
         public string FullName { get; set; }
 
