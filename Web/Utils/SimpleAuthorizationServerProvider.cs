@@ -27,10 +27,26 @@ namespace Web.Utils
                     context.SetError("invalid_grant", "The user name or password is incorrect.");
                     return;
                 }
+                
+                   
+                 var properties = new Dictionary<string, string>()
+                {
+                    { ClaimTypes.NameIdentifier, user.Id},
+                    { ClaimTypes.Name, context.UserName }
+                };
                 var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                AuthenticationProperties properties = CreateProperties(user.UserName, user.Id.ToString(), context.ClientId);
-                AuthenticationTicket ticket = new AuthenticationTicket(identity, properties);
+                //properties.ToList().ForEach(c => identity.AddClaim(new Claim(c.Key, c.Value)));
+                foreach(var kvp in properties)
+                {
+                    identity.AddClaim(new Claim(kvp.Key, kvp.Value));
+                }
+
+
+                //AuthenticationProperties properties = CreateProperties(user.UserName, user.Id.ToString(), context.ClientId);
+                //AuthenticationTicket ticket = new AuthenticationTicket(identity, properties);
+                var ticket = new AuthenticationTicket(identity, new AuthenticationProperties(properties));
                 context.Validated(ticket);
+                context.Request.Context.Authentication.SignIn(identity);
             }
         }
 

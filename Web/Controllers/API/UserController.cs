@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNet.Identity;
+﻿using Core.DTO;
+using Core.Services;
+using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,10 +14,12 @@ using Web.Utils;
 namespace Web.Controllers.API
 {
     [RoutePrefix("api/v1/user")]
+    [Authorize]
     public class UserController : ApiController
     {
 
         private AuthRepository _repo = null;
+        private readonly UserService _userService = new UserService();
 
         public UserController()
         {
@@ -43,6 +47,58 @@ namespace Web.Controllers.API
             }
 
             return Ok();
+        }
+
+        [HttpPost]
+        [Route("requests/add")]
+        public HttpResponseMessage AddFriend(string userid)
+        {
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
+            try
+            {
+                _userService.AddFriend(loggedInUserId, userid);
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            catch (Exception e)
+            {
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, e.Message);
+                return response;
+            }
+        }
+
+        [HttpGet]
+        [Route("requests")]
+        public HttpResponseMessage GetRequests()
+        {
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
+            try
+            {
+                var result = _userService.GetPendingRequests(loggedInUserId);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, result);
+                return response;
+            }
+            catch(Exception e)
+            {
+                HttpResponseMessage response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e.Message);
+                return response;
+            }
+        }
+
+        [HttpPost]
+        [Route("requests/accept")]
+        public HttpResponseMessage AcceptRequest(string userId)
+        {
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
+            try
+            {
+                _userService.AcceptRequest(loggedInUserId, userId);
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            catch (Exception e)
+            {
+                HttpResponseMessage response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e.Message);
+                return response;
+            }
         }
 
         private IHttpActionResult GetErrorResult(IdentityResult result)

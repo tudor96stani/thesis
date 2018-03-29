@@ -64,6 +64,16 @@ namespace Core.Services
                 user.Books.Add(UserBookEntry);
                 book.Owners.Add(UserBookEntry);
                 _logger.Debug($"BookService/AddBookToLibrary Book (Id={BookId}) added to User (Id={UserId}) library");
+
+                Activity activity = new Activity()
+                {
+                    Id = Guid.NewGuid(),
+                    OwnerId = UserId,
+                    TimeStampUTC = DateTime.Now.ToUniversalTime(),
+                    Type = ActivityType.AddedBook,
+                    BookId = BookId
+                };
+                context.Activities.Add(activity);
                 context.SaveChanges();
             }
         }

@@ -40,6 +40,7 @@ namespace Core.DAL
         public DbSet<UsersBooks> UsersBooks { get; set; }
         public DbSet<Author> Authors { get; set; }
         public DbSet<Friendship> Friendships { get; set; }
+        public DbSet<Activity> Activities { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

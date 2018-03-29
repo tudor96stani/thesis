@@ -61,6 +61,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DAL\Activity.cs" />
     <Compile Include="DAL\Author.cs" />
     <Compile Include="DAL\Book.cs" />
     <Compile Include="DAL\Friendship.cs" />
@@ -68,6 +69,7 @@
     <Compile Include="DAL\UsersBooks.cs" />
     <Compile Include="DTO\AuthorDTO.cs" />
     <Compile Include="DTO\BookDTO.cs" />
+    <Compile Include="DTO\FriendshipDTO.cs" />
     <Compile Include="DTO\UserDTO.cs" />
     <Compile Include="Migrations\201803221639457_InitialMigration.cs" />
     <Compile Include="Migrations\201803221639457_InitialMigration.Designer.cs">
@@ -80,6 +82,10 @@
     <Compile Include="Migrations\201803291322066_SeedOnly.cs" />
     <Compile Include="Migrations\201803291322066_SeedOnly.Designer.cs">
       <DependentUpon>201803291322066_SeedOnly.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201803291430099_Added Activities.cs" />
+    <Compile Include="Migrations\201803291430099_Added Activities.Designer.cs">
+      <DependentUpon>201803291430099_Added Activities.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -97,6 +103,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201803291322066_SeedOnly.resx">
       <DependentUpon>201803291322066_SeedOnly.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201803291430099_Added Activities.resx">
+      <DependentUpon>201803291430099_Added Activities.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
