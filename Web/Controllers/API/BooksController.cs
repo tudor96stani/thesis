@@ -7,13 +7,14 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using Web.Models.ViewModels;
-
+using NLog;
 namespace Web.Controllers.API
 {
     [RoutePrefix("api/v1/books")]
     public class BooksController : ApiController
     {
         private readonly BookService _bookService = new BookService();
+        private readonly Logger _logger = NLog.LogManager.GetCurrentClassLogger();
 
         [HttpGet]
         [Route("search")]
@@ -31,8 +32,9 @@ namespace Web.Controllers.API
             try
             {
                 return _bookService.GetLibraryFor(userid);
-            }catch(Exception)
+            }catch(Exception e)
             {
+                _logger.Error($"BooksController/GetLibraryFor Message={e.Message}");
                 throw new HttpRequestException("Could not load books for the user");
             }
         }
@@ -49,6 +51,7 @@ namespace Web.Controllers.API
             }
             catch(Exception e)
             {
+                _logger.Error($"BooksController/AddBookToLibrary Message={e.Message}");
                 HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError,e.Message);
                 return response;
             }
@@ -72,6 +75,7 @@ namespace Web.Controllers.API
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }catch(Exception e)
             {
+                _logger.Error($"BooksController/AddNewBookToLibrary Message={e.Message}");
                 HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, e.Message);
                 return response;
             }

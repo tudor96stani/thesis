@@ -7,18 +7,23 @@ using System.Threading.Tasks;
 using System.Data.Entity;
 using Core.Utils;
 using Core.DTO;
+using NLog;
 namespace Core.Services
 {
     public class BookService
     {
+        private readonly Logger _logger = NLog.LogManager.GetCurrentClassLogger();
         public List<BookDTO> SearchForBook(string Query)
         {
+            
             using (var context = new ApplicationDbContext())
             {
-                return context.Books.Include(x => x.Authors)
+                List<BookDTO> result = context.Books.Include(x => x.Authors)
                     .Where(x => x.Title.Contains(Query) || x.Authors.Any(y => y.FullName.Contains(Query)))
                     .ToList()
                     .Select(x => x.ToDTO()).ToList();
+                _logger.Debug($"BookService/SearchForBook Query={Query}, found {result.Count} results.");
+                return result;
             }
         }
 
@@ -36,20 +41,29 @@ namespace Core.Services
                 };
                 ApplicationUser user = context.Users.Include(x=>x.Books).FirstOrDefault(x => x.Id == UserId);
                 if (user == null)
+                {
+                    _logger.Warn($"BookService/AddBookToLibrary Could not find user with Id={UserId}");
                     throw new Exception("User with given ID does not exist");
-                
+                }
 
                 Book book = context.Books.Include(x => x.Owners).FirstOrDefault(x => x.Id == BookId);
                 if (book == null)
+                {
+                    _logger.Warn($"BookService/AddBookToLibrary Could not find book with Id={BookId}");
                     throw new Exception("Book with given ID does not exist");
+                }
 
                 
                 var addResult = context.UsersBooks.Add(UserBookEntry);
                 if (addResult == null)
+                {
+                    _logger.Warn($"BookService/AddBookToLibrary Could not add book with Id={BookId} to User with Id={UserId} library.");
                     throw new Exception("Could not add book to library.");
+                }
 
                 user.Books.Add(UserBookEntry);
                 book.Owners.Add(UserBookEntry);
+                _logger.Debug($"BookService/AddBookToLibrary Book (Id={BookId}) added to User (Id={UserId}) library");
                 context.SaveChanges();
             }
         }
@@ -62,6 +76,7 @@ namespace Core.Services
                 if(authorNames.Count!=authors.Count)
                 {
                     IEnumerable<string> newAuthors = authorNames.Except(authors.Select(x => x.FullName));
+                    _logger.Debug($"BookService/AddNewBookToLibrary {newAuthors.Count()} new authors are being added.");
                     List<Author> newAuthorsObjects = new List<Author>();
                     foreach(var newAuth in newAuthors)
                     {
@@ -73,7 +88,6 @@ namespace Core.Services
                     }
                     context.Authors.AddRange(newAuthorsObjects);
                     authors.AddRange(newAuthorsObjects);
-                    //context.SaveChanges();
                 }
 
                 Book bookObj = new Book()
@@ -90,7 +104,7 @@ namespace Core.Services
                     author.Books.Add(bookObj);
                 }
                 context.SaveChanges();
-                this.AddBookToLibrary(UserId, bookObj.Id);
+                AddBookToLibrary(UserId, bookObj.Id);
             }
         }
 
@@ -100,8 +114,11 @@ namespace Core.Services
             {
                 List<Guid> userBookIds = context.Users.Include(x=>x.Books).FirstOrDefault(x => x.Id == UserId)
                     .Books.Select(x=>x.BookId).ToList();
+                _logger.Debug($"BookService/GetLibraryFor Found {userBookIds.Count()} for user with Id={UserId}");
                 List<BookDTO> actualBooks = context.Books.Where(x => userBookIds.Contains(x.Id))
                     .ToList().Select(x => x.ToDTO()).ToList();
+                if (userBookIds.Count() != actualBooks.Count())
+                    _logger.Warn($"BookService/GetLibraryFor Found {userBookIds.Count()} book IDs but {actualBooks.Count()} actual books retrieved from DB.");
                 return actualBooks;
             }
         }
