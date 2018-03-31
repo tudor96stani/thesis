@@ -1,6 +1,7 @@
 ﻿using Core.DTO;
 using Core.Services;
 using Microsoft.AspNet.Identity;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace Web.Controllers.API
 
         private AuthRepository _repo = null;
         private readonly UserService _userService = new UserService();
+        private readonly Logger _logger = NLog.LogManager.GetCurrentClassLogger();
 
         public UserController()
         {
@@ -34,6 +36,7 @@ namespace Web.Controllers.API
         {
             if (!ModelState.IsValid)
             {
+                _logger.Warn("UserController/Register Model state not valid.");
                 return BadRequest(ModelState);
             }
 
@@ -61,6 +64,7 @@ namespace Web.Controllers.API
             }
             catch (Exception e)
             {
+                _logger.Warn($"UserController/AddFriend Exception message={e.Message}");
                 HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, e.Message);
                 return response;
             }
@@ -79,6 +83,7 @@ namespace Web.Controllers.API
             }
             catch(Exception e)
             {
+                _logger.Warn($"UserController/GetRequests Exception message={e.Message}");
                 HttpResponseMessage response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e.Message);
                 return response;
             }
@@ -96,6 +101,7 @@ namespace Web.Controllers.API
             }
             catch (Exception e)
             {
+                _logger.Warn($"UserController/AcceptRequest Exception message={e.Message}");
                 HttpResponseMessage response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e.Message);
                 return response;
             }

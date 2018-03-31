@@ -4,13 +4,12 @@ using Core.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+using NLog;
 namespace Core.Services
 {
     public class UserService
     {
+        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         public void AddFriend(string Requester, string Requested)
         {
             using (var context = new ApplicationDbContext())
@@ -18,7 +17,7 @@ namespace Core.Services
                 var existingRelationship = context.Friendships.FirstOrDefault(x => x.User1Id == Requested && x.User2Id == Requester);
                 if(existingRelationship!=null)
                 {
-                    //LOG
+                    _logger.Warn($"UserService/AddFriend User with Id={Requester} sent friend request to Id={Requested} - relationship already exists.");
                     throw new Exception("Relationship already exists!");
                 }
                 var friendship = new Friendship()
@@ -30,7 +29,7 @@ namespace Core.Services
                 var addToContextResult = context.Friendships.Add(friendship);
                 if (addToContextResult == null)
                 {
-                    //LOG
+                    _logger.Warn($"UserService/AddFriend User with Id={Requester} sent friend request to Id={Requested} - couldn't create relationship.");
                     throw new Exception("Could not establish relationship");
                 }
                 var user1 = context.Users.FirstOrDefault(x => x.Id == Requester);
@@ -50,13 +49,13 @@ namespace Core.Services
                 var friendship = context.Friendships.FirstOrDefault(x => x.User2Id == Me && x.User1Id == Requester);
                 if (friendship == null)
                 {
-                    //LOG
+                    _logger.Warn($"UserService/AcceptRequest Relationship between Me={Me} and Requester={Requester} does not exist");
                     throw new Exception("Could not find friendship");
                 }
 
                 if (friendship.Status != RelationshipStatus.Requested)
                 {
-                    //LOG
+                    _logger.Warn($"UserService/AcceptRequest Relationship status between Me={Me} and Requester={Requester} already Accepted");
                     throw new Exception("Already friends");
                 }
                 friendship.Status = RelationshipStatus.Accepted;
@@ -76,7 +75,7 @@ namespace Core.Services
 
                 if (userIds==null)
                 {
-                    //LOG
+                    _logger.Info($"UserService/GetPendingRequests UserId={UserId} No relationships found.");
                     throw new Exception("No requests found");
                 }
                 var users = context.Users.Where(x => userIds.Contains(x.Id)).ToList();
