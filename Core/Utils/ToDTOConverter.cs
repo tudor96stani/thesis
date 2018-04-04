@@ -28,7 +28,8 @@ namespace Core.Utils
             {
                 Id=model.Id,
                 FirstName=model.FirstName,
-                LastName=model.LastName
+                LastName=model.LastName,
+                Fullname = model.FullName
             };
         }
 
