@@ -10,6 +10,7 @@ using Web.Models.ViewModels;
 using NLog;
 namespace Web.Controllers.API
 {
+    [Authorize]
     [RoutePrefix("api/v1/books")]
     public class BooksController : ApiController
     {
