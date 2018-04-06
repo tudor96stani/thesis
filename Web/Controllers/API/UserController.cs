@@ -28,6 +28,14 @@ namespace Web.Controllers.API
             _repo = new AuthRepository();
         }
 
+        [Authorize]
+        [Route("verify")]
+        [HttpGet]
+        public IHttpActionResult Check()
+        {
+            return Ok();
+        }
+
         // POST api/v1/user/Register
         [AllowAnonymous]
         [Route("register")]

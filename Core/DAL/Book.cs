@@ -18,6 +18,11 @@ namespace Core.DAL
         public virtual ICollection<Author> Authors { get; set; }
         public virtual ICollection<UsersBooks> Owners { get; set; }
 
+
+        public virtual BookImage BookImage { get; set; }
+
+
+
         public Book()
         {
             this.Authors = new HashSet<Author>();

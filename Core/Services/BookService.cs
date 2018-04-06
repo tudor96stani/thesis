@@ -18,7 +18,7 @@ namespace Core.Services
             
             using (var context = new ApplicationDbContext())
             {
-                List<BookDTO> result = context.Books.Include(x => x.Authors)
+                List<BookDTO> result = context.Books.Include(x => x.Authors).Include(x=>x.BookImage)
                     .Where(x => x.Title.Contains(Query) || x.Authors.Any(y => y.FullName.Contains(Query)))
                     .ToList()
                     .Select(x => x.ToDTO()).ToList();
@@ -125,7 +125,7 @@ namespace Core.Services
                 List<Guid> userBookIds = context.Users.Include(x=>x.Books).FirstOrDefault(x => x.Id == UserId)
                     .Books.Select(x=>x.BookId).ToList();
                 _logger.Debug($"BookService/GetLibraryFor Found {userBookIds.Count()} for user with Id={UserId}");
-                List<BookDTO> actualBooks = context.Books.Where(x => userBookIds.Contains(x.Id))
+                List<BookDTO> actualBooks = context.Books.Include(x => x.BookImage).Include(x => x.Authors).Where(x => userBookIds.Contains(x.Id))
                     .ToList().Select(x => x.ToDTO()).ToList();
                 if (userBookIds.Count() != actualBooks.Count())
                     _logger.Warn($"BookService/GetLibraryFor Found {userBookIds.Count()} book IDs but {actualBooks.Count()} actual books retrieved from DB.");

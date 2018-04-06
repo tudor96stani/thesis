@@ -13,5 +13,6 @@ namespace Core.DTO
         public int Year { get; set; }
         public string Publisher { get; set; }
         public List<AuthorDTO> Authors { get; set; }
+        public byte[] Cover { get; set; }
     }
 }

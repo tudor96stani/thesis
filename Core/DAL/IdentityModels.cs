@@ -41,6 +41,7 @@ namespace Core.DAL
         public DbSet<Author> Authors { get; set; }
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<Activity> Activities { get; set; }
+        public DbSet<BookImage> Images { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -56,6 +57,13 @@ namespace Core.DAL
                 f.User1Id,
                 f.User2Id
             });
+
+            modelBuilder.Entity<Book>()
+                        .HasOptional(b => b.BookImage)
+                        .WithRequired(bi => bi.Book);
+
+
+
 
             modelBuilder.Entity<ApplicationUser>().HasMany(x => x.MyFriends).WithRequired(x => x.User1).HasForeignKey(x => x.User1Id);
             modelBuilder.Entity<Friendship>().HasRequired(x => x.User1).WithMany(x => x.MyFriends).HasForeignKey(x => x.User1Id);

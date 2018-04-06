@@ -18,7 +18,8 @@ namespace Core.Utils
                 Title = model.Title,
                 Year = model.Year,
                 Publisher = model.Publisher,
-                Authors = model.Authors.Select(x => x.ToDTO()).ToList()
+                Authors = model.Authors.Select(x => x.ToDTO()).ToList(),
+                Cover=model.BookImage!=null ? model.BookImage.Content : null
             };
         }
 
