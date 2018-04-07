@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
+using System.Data.Entity;
 namespace Core.Services
 {
     public class UserService
@@ -81,6 +82,26 @@ namespace Core.Services
                 var users = context.Users.Where(x => userIds.Contains(x.Id)).ToList();
                // return users.Select(ToDTOConverter.ToDTO).ToList();
                 return users.Select(x => x.ToDTO()).ToList();
+            }
+        }
+
+        public List<UserDTO> GetFriendsFor(string UserId)
+        {
+            using (var context = new ApplicationDbContext())
+            {
+                List<string> friendsIds = context.Friendships
+                    .Where(x => x.User1Id == UserId || x.User2Id == UserId)
+                    .Select(x => x.User1Id == UserId ? x.User2Id : x.User1Id)
+                    .ToList();
+
+                _logger.Debug($"UserService/GetFriendsFor Found {friendsIds.Count()} for user with Id={UserId}");
+
+                List<UserDTO> friends = context.Users
+                                    .Where(x => friendsIds.Contains(x.Id))
+                                    .ToList()
+                                    .Select(x => x.ToDTO()).ToList();
+                return friends;
+                
             }
         }
     }

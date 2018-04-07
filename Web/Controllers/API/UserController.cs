@@ -115,6 +115,24 @@ namespace Web.Controllers.API
             }
         }
 
+        [HttpGet]
+        [Route("friends")]
+        public HttpResponseMessage GetFriendsFor(string userId)
+        {
+            try
+            {
+                List<UserDTO> friends = _userService.GetFriendsFor(userId);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, friends);
+                return response;
+            }
+            catch(Exception e)
+            {
+                _logger.Warn($"UserController/GetFriendsFor Exception message={e.Message}");
+                HttpResponseMessage response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e.Message);
+                return response;
+            }
+        }
+
         private IHttpActionResult GetErrorResult(IdentityResult result)
         {
             if (result == null)
