@@ -79,7 +79,7 @@ namespace Core.Services
                     throw new Exception("No requests found");
                 }
                 var users = context.Users.Where(x => userIds.Contains(x.Id)).ToList();
-
+               // return users.Select(ToDTOConverter.ToDTO).ToList();
                 return users.Select(x => x.ToDTO()).ToList();
             }
         }
