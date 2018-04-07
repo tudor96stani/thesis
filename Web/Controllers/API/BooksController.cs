@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using Web.Models.ViewModels;
+using Microsoft.AspNet.Identity;
 using NLog;
 namespace Web.Controllers.API
 {
@@ -42,12 +43,13 @@ namespace Web.Controllers.API
 
 
         [HttpPost]
-        [Route("{userid}")]
-        public HttpResponseMessage AddBookToLibrary([FromUri] string userid,[FromBody]string bookId)
+        [Route("add")]
+        public HttpResponseMessage AddBookToLibrary([FromBody]SingleStringParam bookId)
         {
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
             try
             {
-                _bookService.AddBookToLibrary(userid, new Guid(bookId));
+                _bookService.AddBookToLibrary(loggedInUserId, new Guid(bookId.Param));
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
             catch(Exception e)

@@ -20,6 +20,8 @@ namespace Web.Utils
 
             using (AuthRepository _repo = new AuthRepository())
             {
+                //var logger = NLog.LogManager.GetCurrentClassLogger();
+                //logger.Debug($"GrantResourceOwnerCredentials username={context.UserName}");
                 IdentityUser user = await _repo.FindUser(context.UserName, context.Password);
 
                 if (user == null)

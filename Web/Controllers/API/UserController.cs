@@ -117,11 +117,13 @@ namespace Web.Controllers.API
 
         [HttpGet]
         [Route("friends")]
-        public HttpResponseMessage GetFriendsFor(string userId)
+        public HttpResponseMessage GetFriendsFor()
         {
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
             try
             {
-                List<UserDTO> friends = _userService.GetFriendsFor(userId);
+                _logger.Debug($"UserController/GetFriendsFor Searching for friends of user with id={loggedInUserId}");
+                List<UserDTO> friends = _userService.GetFriendsFor(loggedInUserId);
                 HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, friends);
                 return response;
             }

@@ -22,6 +22,7 @@ namespace AngularJSAuthentication.API
             app.UseCors(Microsoft.Owin.Cors.CorsOptions.AllowAll);
             ConfigureOAuth(app);
             app.UseWebApi(config);
+            
         }
 
         public void ConfigureOAuth(IAppBuilder app)
