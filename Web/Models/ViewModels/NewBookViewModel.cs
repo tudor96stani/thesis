@@ -7,10 +7,11 @@ namespace Web.Models.ViewModels
 {
     public class NewBookViewModel
     {
-        public string UserId { get; set; }
+        //public string UserId { get; set; }
         public string Title { get; set; }
         public List<string> Authors { get; set; }
         public int Year { get; set; }
         public string Publisher { get; set; }
+        public byte[] Cover { get; set; }
     }
 }

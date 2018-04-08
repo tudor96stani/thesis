@@ -22,8 +22,18 @@ namespace Web.Controllers.API
         [Route("search")]
         public List<BookDTO> SearchForBook(string query)
         {
-            var books = _bookService.SearchForBook(query);
+            var books = _bookService.SearchForBook(query.Replace('%',' '));
             return books;
+        }
+
+        [HttpGet]
+        [Route("check")]
+        public HttpResponseMessage CheckIfBookInLibrary(string bookId)
+        {
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
+            var result = _bookService.CheckIfBookInLibrary(loggedInUserId, bookId);
+            HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, new { inLibrary = result});
+            return response;
         }
 
 
@@ -66,14 +76,15 @@ namespace Web.Controllers.API
         {
             if (!ModelState.IsValid)
                 return new HttpResponseMessage(HttpStatusCode.BadRequest);
-
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
             try
             {
-                _bookService.AddNewBookToLibrary(model.UserId, new BookDTO()
+                _bookService.AddNewBookToLibrary(loggedInUserId, new BookDTO()
                 {
                     Title = model.Title,
                     Year = model.Year,
-                    Publisher = model.Publisher
+                    Publisher = model.Publisher,
+                    Cover = model.Cover
                 }, model.Authors);
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }catch(Exception e)

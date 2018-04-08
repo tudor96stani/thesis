@@ -27,6 +27,16 @@ namespace Core.Services
             }
         }
 
+        public bool CheckIfBookInLibrary(string userId,string bookId)
+        {
+            using(var context = new ApplicationDbContext())
+            {
+                var result = context.UsersBooks.FirstOrDefault(x => x.UserId == userId && x.BookId == new Guid(bookId));
+                return result != null;
+             
+            }
+        }
+
 
         public void AddBookToLibrary(string UserId,Guid BookId,bool Public = true)
         {
@@ -100,6 +110,7 @@ namespace Core.Services
                     authors.AddRange(newAuthorsObjects);
                 }
 
+
                 Book bookObj = new Book()
                 {
                     Id = Guid.NewGuid(),
@@ -113,6 +124,13 @@ namespace Core.Services
                 {
                     author.Books.Add(bookObj);
                 }
+                BookImage img = new BookImage()
+                {
+                    BookImageId = bookObj.Id,
+                    Content = book.Cover
+                    //Book = bookObj
+                };
+                context.Images.Add(img);
                 context.SaveChanges();
                 AddBookToLibrary(UserId, bookObj.Id);
             }
