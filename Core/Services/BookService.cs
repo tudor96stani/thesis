@@ -105,6 +105,7 @@ namespace Core.Services
                             Id=Guid.NewGuid(),
                             FullName = newAuth
                         });
+
                     }
                     context.Authors.AddRange(newAuthorsObjects);
                     authors.AddRange(newAuthorsObjects);

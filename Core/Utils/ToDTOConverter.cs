@@ -44,6 +44,18 @@ namespace Core.Utils
             };
         }
 
+        public static ActivityDTO ToDTO(this Activity model,BookDTO book,UserDTO user)
+        {
+            return model == null ? null : new ActivityDTO()
+            {
+                Id = model.Id,
+                Owner = user,
+                Book = book,
+                DateTimeUtc = model.TimeStampUTC,
+                Type = model.Type
+            };
+        }
+
         
     }
 }

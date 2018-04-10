@@ -12,6 +12,6 @@ namespace Web.Models.ViewModels
         public List<string> Authors { get; set; }
         public int Year { get; set; }
         public string Publisher { get; set; }
-        public byte[] Cover { get; set; }
+        public String CoverUrl { get; set; }
     }
 }

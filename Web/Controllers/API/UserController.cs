@@ -135,6 +135,24 @@ namespace Web.Controllers.API
             }
         }
 
+        [HttpGet]
+        [Route("newsfeed")]
+        public HttpResponseMessage GetNewsFeed(int page = 1)
+        {
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
+            try
+            {
+                var result = _userService.GetNewsFeed(loggedInUserId, page);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, result);
+                return response;
+            }catch(Exception e)
+            {
+                _logger.Warn($"UserController/GetNewsFeed Exception message={e.Message}");
+                HttpResponseMessage response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e.Message);
+                return response;
+            }
+        }
+
         private IHttpActionResult GetErrorResult(IdentityResult result)
         {
             if (result == null)

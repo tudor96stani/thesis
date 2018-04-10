@@ -104,5 +104,34 @@ namespace Core.Services
                 
             }
         }
+
+        public List<ActivityDTO> GetNewsFeed(string UserId,int page)
+        {
+            using (var context = new ApplicationDbContext())
+            {
+                List<string> friendsIds = context.Friendships
+                    .Where(x => x.User1Id == UserId || x.User2Id == UserId)
+                    .Select(x => x.User1Id == UserId ? x.User2Id : x.User1Id)
+                    .ToList();
+                List<Activity> activities = context.Activities
+                        .Where(x => friendsIds.Contains(x.OwnerId))
+                        .OrderByDescending(x => x.TimeStampUTC)
+                        .Skip((page - 1) * 10)
+                        .Take(10)
+                        .ToList();
+                List<Guid> BooksIds = activities.Select(x => x.BookId).ToList();
+                List<BookDTO> Books = context.Books.Where(x => BooksIds.Contains(x.Id))
+                                        .ToList().Select(x => x.ToDTO()).ToList();
+
+                List<string> UserIds = activities.Select(x => x.OwnerId).ToList();
+                List<UserDTO> Users = context.Users.Where(x => UserIds.Contains(x.Id))
+                                        .ToList().Select(x => x.ToDTO()).ToList();
+
+                List<ActivityDTO> activitiesDTOs = activities
+                        .Select(x => x.ToDTO(Books.FirstOrDefault(y => y.Id == x.BookId),
+                        Users.FirstOrDefault(z => z.Id == x.OwnerId))).ToList();
+                return activitiesDTOs;
+            }
+        }
     }
 }

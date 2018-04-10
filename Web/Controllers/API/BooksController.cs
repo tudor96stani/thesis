@@ -75,16 +75,23 @@ namespace Web.Controllers.API
         public HttpResponseMessage AddNewBookToLibrary(NewBookViewModel model)
         {
             if (!ModelState.IsValid)
+            {
+                var cnt = model.Authors != null ? model.Authors.Count() : -1;
+                var error = String.Join("\t", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage).ToArray());
+                _logger.Debug($"BookController/AddNewBookToLibrary Model errors = {error}");
                 return new HttpResponseMessage(HttpStatusCode.BadRequest);
+            }
             string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
             try
             {
+                var webClient = new WebClient();
+                byte[] imageBytes = webClient.DownloadData(model.CoverUrl);
                 _bookService.AddNewBookToLibrary(loggedInUserId, new BookDTO()
                 {
                     Title = model.Title,
                     Year = model.Year,
                     Publisher = model.Publisher,
-                    Cover = model.Cover
+                    Cover = imageBytes
                 }, model.Authors);
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }catch(Exception e)
