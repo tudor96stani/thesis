@@ -85,12 +85,32 @@ namespace Core.Services
             }
         }
 
+        public int GetPendingRequestsNumber(string UserId)
+        {
+            using (var context = new ApplicationDbContext())
+            {
+                var userIds = context.Friendships
+                    .Where(x => x.User2Id == UserId && x.Status == RelationshipStatus.Requested)
+                    .ToList()
+                    .Select(x => x.User1Id)
+                    .ToList();
+
+                if (userIds == null)
+                {
+                    _logger.Info($"UserService/GetPendingRequests UserId={UserId} No relationships found.");
+                    throw new Exception("No requests found");
+                }
+                return userIds.Count();
+            }
+        }
+
         public List<UserDTO> GetFriendsFor(string UserId)
         {
             using (var context = new ApplicationDbContext())
             {
                 List<string> friendsIds = context.Friendships
                     .Where(x => x.User1Id == UserId || x.User2Id == UserId)
+                    .Where(x=>x.Status == RelationshipStatus.Accepted)
                     .Select(x => x.User1Id == UserId ? x.User2Id : x.User1Id)
                     .ToList();
 

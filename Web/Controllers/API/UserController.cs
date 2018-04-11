@@ -85,11 +85,30 @@ namespace Web.Controllers.API
             string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
             try
             {
-                var result = _userService.GetPendingRequests(loggedInUserId);
+                List<UserDTO> result = _userService.GetPendingRequests(loggedInUserId);
                 HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, result);
                 return response;
             }
             catch(Exception e)
+            {
+                _logger.Warn($"UserController/GetRequests Exception message={e.Message}");
+                HttpResponseMessage response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e.Message);
+                return response;
+            }
+        }
+
+        [HttpGet]
+        [Route("requestsNumber")]
+        public HttpResponseMessage GetRequestsNumber()
+        {
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
+            try
+            {
+                int result = _userService.GetPendingRequestsNumber(loggedInUserId);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, new { count = result});
+                return response;
+            }
+            catch (Exception e)
             {
                 _logger.Warn($"UserController/GetRequests Exception message={e.Message}");
                 HttpResponseMessage response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e.Message);
