@@ -60,6 +60,23 @@ namespace Web.Controllers.API
             return Ok();
         }
 
+        [HttpGet]
+        [Route("find")]
+        public HttpResponseMessage FindUsers(string query)
+        {
+            try
+            {
+                List<UserDTO> users = _userService.FindUsers(query);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, users);
+                return response;
+            }catch(Exception e)
+            {
+                _logger.Warn($"UserController/FindUsers Exception message={e.Message}");
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, e.Message);
+                return response;
+            }
+        }
+
         [HttpPost]
         [Route("requests/add")]
         public HttpResponseMessage AddFriend(string userid)

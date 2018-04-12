@@ -153,5 +153,15 @@ namespace Core.Services
                 return activitiesDTOs;
             }
         }
+
+       public List<UserDTO> FindUsers(string query)
+        {
+            using (var context = new ApplicationDbContext())
+            {
+                var users = context.Users.Where(x => x.UserName.Contains(query))
+                        .ToList();
+                return users.Select(x => x.ToDTO()).ToList();
+            }
+        }
     }
 }
