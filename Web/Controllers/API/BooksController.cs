@@ -101,5 +101,23 @@ namespace Web.Controllers.API
                 return response;
             }
         }
+
+        [HttpGet]
+        [Route("owners")]
+        public HttpResponseMessage GetOwnersOfBook(Guid bookId)
+        {
+            try
+            {
+                List<UserDTO> users = _bookService.GetUsersWhoOwnBook(bookId);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, users);
+                return response;
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"BooksController/GetOwnersOfBook Message={e.Message}");
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, e.Message);
+                return response;
+            }
+        }
     }
 }

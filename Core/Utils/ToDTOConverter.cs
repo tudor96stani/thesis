@@ -39,8 +39,8 @@ namespace Core.Utils
             return model == null ? null : new UserDTO()
             {
                 Id = model.Id,
-                Name = model.UserName,
-                Password=model.PasswordHash
+                Name = model.UserName
+            
             };
         }
 

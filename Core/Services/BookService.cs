@@ -152,5 +152,18 @@ namespace Core.Services
                 return actualBooks;
             }
         }
+
+        public List<UserDTO> GetUsersWhoOwnBook(Guid bookId)
+        {
+            using (var context = new ApplicationDbContext())
+            {
+                List<string> userIds = context.UsersBooks.Where(x => x.BookId == bookId)
+                    .Select(x => x.UserId).ToList();
+
+                List<UserDTO> users = context.Users.Where(x => userIds.Contains(x.Id))
+                        .ToList().Select(ToDTOConverter.ToDTO).ToList();
+                return users;
+            }
+        }
     }
 }
