@@ -106,9 +106,10 @@ namespace Web.Controllers.API
         [Route("owners")]
         public HttpResponseMessage GetOwnersOfBook(Guid bookId)
         {
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
             try
             {
-                List<UserDTO> users = _bookService.GetUsersWhoOwnBook(bookId);
+                List<UserDTO> users = _bookService.GetUsersWhoOwnBook(bookId,loggedInUserId);
                 HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, users);
                 return response;
             }

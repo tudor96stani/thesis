@@ -153,11 +153,11 @@ namespace Core.Services
             }
         }
 
-        public List<UserDTO> GetUsersWhoOwnBook(Guid bookId)
+        public List<UserDTO> GetUsersWhoOwnBook(Guid bookId,string loggedInUserId)
         {
             using (var context = new ApplicationDbContext())
             {
-                List<string> userIds = context.UsersBooks.Where(x => x.BookId == bookId)
+                List<string> userIds = context.UsersBooks.Where(x => x.BookId == bookId && x.UserId != loggedInUserId)
                     .Select(x => x.UserId).ToList();
 
                 List<UserDTO> users = context.Users.Where(x => userIds.Contains(x.Id))

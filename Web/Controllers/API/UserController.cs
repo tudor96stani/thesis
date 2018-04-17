@@ -64,9 +64,10 @@ namespace Web.Controllers.API
         [Route("find")]
         public HttpResponseMessage FindUsers(string query)
         {
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
             try
             {
-                List<UserDTO> users = _userService.FindUsers(query);
+                List<UserDTO> users = _userService.FindUsers(query,loggedInUserId);
                 HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, users);
                 return response;
             }catch(Exception e)

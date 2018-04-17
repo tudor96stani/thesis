@@ -13,6 +13,11 @@ namespace Core.Services
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         public void AddFriend(string Requester, string Requested)
         {
+            if (Requester == Requested)
+            {
+                _logger.Warn($"UserService/AddFriend Trying to create relationship between user and self");
+                throw new Exception("Cannot add self as friend");
+            }
             using (var context = new ApplicationDbContext())
             {
                 var existingRelationship = context.Friendships.FirstOrDefault(x => x.User1Id == Requested && x.User2Id == Requester);
@@ -154,11 +159,11 @@ namespace Core.Services
             }
         }
 
-       public List<UserDTO> FindUsers(string query)
+       public List<UserDTO> FindUsers(string query,string loggedInUserId)
         {
             using (var context = new ApplicationDbContext())
             {
-                var users = context.Users.Where(x => x.UserName.Contains(query))
+                var users = context.Users.Where(x => x.UserName.Contains(query) && x.Id != loggedInUserId)
                         .ToList();
                 return users.Select(x => x.ToDTO()).ToList();
             }
