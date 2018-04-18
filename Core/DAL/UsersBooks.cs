@@ -18,8 +18,12 @@ namespace Core.DAL
 
 	    public bool Public { get; set; }
 	    public bool Borrowed { get; set; }
+        public bool Lent { get; set; }
 
-	    public virtual ApplicationUser Borrower { get; set; }
-        public string BorrowerId { get; set; }
+	    public virtual ApplicationUser BorrowedFrom { get; set; }
+        public string BorrowedFromId { get; set; }
+
+        public virtual ApplicationUser LentTo { get; set; }
+        public string LentToId { get; set; }
     }
 }

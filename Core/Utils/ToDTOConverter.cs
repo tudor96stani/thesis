@@ -56,6 +56,13 @@ namespace Core.Utils
             };
         }
 
-        
+        public static BorrowRequestDTO ToDTO(this BorrowRequest model,BookDTO book,UserDTO user)
+        {
+            return model == null ? null : new BorrowRequestDTO()
+            {
+                Book = book,
+                Borrower = user
+            };
+        }
     }
 }

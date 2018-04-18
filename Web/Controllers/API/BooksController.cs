@@ -11,7 +11,7 @@ using Microsoft.AspNet.Identity;
 using NLog;
 namespace Web.Controllers.API
 {
-    //[Authorize]
+    [Authorize]
     [RoutePrefix("api/v1/books")]
     public class BooksController : ApiController
     {
@@ -46,7 +46,7 @@ namespace Web.Controllers.API
                 return _bookService.GetLibraryFor(userid);
             }catch(Exception e)
             {
-                _logger.Error($"BooksController/GetLibraryFor Message={e.Message}");
+                _logger.Error($"BooksController/GetLibraryFor Message={e}");
                 throw new HttpRequestException("Could not load books for the user");
             }
         }
@@ -65,7 +65,7 @@ namespace Web.Controllers.API
             catch(Exception e)
             {
                 _logger.Error($"BooksController/AddBookToLibrary Message={e.Message}");
-                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError,e.Message);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
                 return response;
             }
         }
@@ -97,7 +97,7 @@ namespace Web.Controllers.API
             }catch(Exception e)
             {
                 _logger.Error($"BooksController/AddNewBookToLibrary Message={e.Message}");
-                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, e.Message);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
                 return response;
             }
         }
@@ -116,7 +116,76 @@ namespace Web.Controllers.API
             catch (Exception e)
             {
                 _logger.Error($"BooksController/GetOwnersOfBook Message={e.Message}");
-                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, e.Message);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
+                return response;
+            }
+        }
+
+        [HttpPost]
+        [Route("borrow/request")]
+        public HttpResponseMessage RequestBorrow(BorrowRequestViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.Error($"BooksController/RequestBorrow Bad request: From={model.From},BookId={model.BookId}");
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.BadRequest);
+                return response;
+            }
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
+            try
+            {
+                _bookService.RequestBorrowBook(loggedInUserId, model.From, model.BookId);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK);
+                return response;
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"BooksController/RequestBorrow Message={e.Message}");
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
+                return response;
+            }
+        }
+
+        [HttpPost]
+        [Route("borrow/accept")]
+        public HttpResponseMessage AcceptBorrowRequest(BorrowRequestViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.Error($"BooksController/AcceptBorrowRequest Bad request: From={model.From},BookId={model.BookId}");
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.BadRequest);
+                return response;
+            }
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
+            try
+            {
+                _bookService.AcceptBorrowBookRequest(model.From, loggedInUserId, model.BookId);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK);
+                return response;
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"BooksController/AcceptBorrowRequest Message={e.Message}");
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
+                return response;
+            }
+        }
+
+        [HttpGet]
+        [Route("borrow/requests")]
+        public HttpResponseMessage GetBorrowRequests()
+        {
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
+            try
+            {
+                List<BorrowRequestDTO> result = _bookService.GetBorrowRequests(loggedInUserId);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, result);
+                return response;
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"BooksController/GetBorrowRequests Message={e.Message}");
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
                 return response;
             }
         }

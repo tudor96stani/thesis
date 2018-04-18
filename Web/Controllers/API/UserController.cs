@@ -73,7 +73,7 @@ namespace Web.Controllers.API
             }catch(Exception e)
             {
                 _logger.Warn($"UserController/FindUsers Exception message={e.Message}");
-                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, e.Message);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
                 return response;
             }
         }
@@ -91,7 +91,7 @@ namespace Web.Controllers.API
             catch (Exception e)
             {
                 _logger.Warn($"UserController/AddFriend Exception message={e.Message}");
-                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, e.Message);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
                 return response;
             }
         }
@@ -110,7 +110,7 @@ namespace Web.Controllers.API
             catch(Exception e)
             {
                 _logger.Warn($"UserController/GetRequests Exception message={e.Message}");
-                HttpResponseMessage response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e.Message);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
                 return response;
             }
         }
@@ -129,7 +129,7 @@ namespace Web.Controllers.API
             catch (Exception e)
             {
                 _logger.Warn($"UserController/GetRequests Exception message={e.Message}");
-                HttpResponseMessage response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e.Message);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError,  new {Message= e.Message });
                 return response;
             }
         }
@@ -147,7 +147,7 @@ namespace Web.Controllers.API
             catch (Exception e)
             {
                 _logger.Warn($"UserController/AcceptRequest Exception message={e.Message}");
-                HttpResponseMessage response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e.Message);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
                 return response;
             }
         }
@@ -167,7 +167,7 @@ namespace Web.Controllers.API
             catch(Exception e)
             {
                 _logger.Warn($"UserController/GetFriendsFor Exception message={e.Message}");
-                HttpResponseMessage response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e.Message);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
                 return response;
             }
         }
@@ -185,7 +185,7 @@ namespace Web.Controllers.API
             }catch(Exception e)
             {
                 _logger.Warn($"UserController/GetNewsFeed Exception message={e.Message}");
-                HttpResponseMessage response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e.Message);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
                 return response;
             }
         }

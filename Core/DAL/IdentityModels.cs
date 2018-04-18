@@ -22,6 +22,7 @@ namespace Core.DAL
         public virtual ICollection<UsersBooks> BorrowedBooks { get; set; }
         public virtual ICollection<Friendship> MyFriends { get; set; }
         public virtual ICollection<Friendship> FriendsWithMe { get; set; }
+        public virtual ICollection<UsersBooks> LentBooks { get; set; }
     }
 
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
@@ -42,6 +43,7 @@ namespace Core.DAL
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<Activity> Activities { get; set; }
         public DbSet<BookImage> Images { get; set; }
+        public DbSet<BorrowRequest> BorrowRequests { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -62,7 +64,12 @@ namespace Core.DAL
                         .HasOptional(b => b.BookImage)
                         .WithRequired(bi => bi.Book);
 
-
+            modelBuilder.Entity<BorrowRequest>().HasKey(r => new
+            {
+                r.BookId,
+                r.BorrowerId,
+                r.LenderId
+            });
 
 
             modelBuilder.Entity<ApplicationUser>().HasMany(x => x.MyFriends).WithRequired(x => x.User1).HasForeignKey(x => x.User1Id);
@@ -72,11 +79,14 @@ namespace Core.DAL
             modelBuilder.Entity<Friendship>().HasRequired(x => x.User2).WithMany(x => x.FriendsWithMe).HasForeignKey(x => x.User2Id);
 
 
-            modelBuilder.Entity<ApplicationUser>().HasMany(x => x.BorrowedBooks).WithOptional(x => x.Borrower).HasForeignKey(x => x.BorrowerId);
-            modelBuilder.Entity<UsersBooks>().HasOptional(x => x.Borrower).WithMany(x => x.BorrowedBooks).HasForeignKey(x => x.BorrowerId);
+            modelBuilder.Entity<ApplicationUser>().HasMany(x => x.BorrowedBooks).WithOptional(x => x.BorrowedFrom).HasForeignKey(x => x.BorrowedFromId);
+            modelBuilder.Entity<UsersBooks>().HasOptional(x => x.BorrowedFrom).WithMany(x => x.BorrowedBooks).HasForeignKey(x => x.BorrowedFromId);
 
             modelBuilder.Entity<ApplicationUser>().HasMany(x => x.Books).WithRequired(x => x.User).HasForeignKey(x => x.UserId);
             modelBuilder.Entity<UsersBooks>().HasRequired(x => x.User).WithMany(x => x.Books).HasForeignKey(x => x.UserId);
+
+            modelBuilder.Entity<ApplicationUser>().HasMany(x => x.LentBooks).WithOptional(x => x.LentTo).HasForeignKey(x => x.LentToId);
+            modelBuilder.Entity<UsersBooks>().HasOptional(x => x.LentTo).WithMany(x => x.LentBooks).HasForeignKey(x => x.LentToId);
 
             modelBuilder.Entity<Book>().HasMany(x => x.Owners).WithRequired(x => x.Book).HasForeignKey(x => x.BookId);
             modelBuilder.Entity<UsersBooks>().HasRequired(x => x.Book).WithMany(x => x.Owners).HasForeignKey(x => x.BookId);

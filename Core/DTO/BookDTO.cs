@@ -14,5 +14,11 @@ namespace Core.DTO
         public string Publisher { get; set; }
         public List<AuthorDTO> Authors { get; set; }
         public byte[] Cover { get; set; }
+
+        public bool Borrowed { get; set; }
+        public UserDTO BorrowedFrom { get; set; }
+
+        public bool Lent { get; set; }
+        public UserDTO LentTo { get; set; }
     }
 }

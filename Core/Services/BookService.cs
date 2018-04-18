@@ -47,7 +47,8 @@ namespace Core.Services
                     BookId = BookId,
                     UserId = UserId,
                     Public = Public,
-                    Borrowed = false
+                    Borrowed = false,
+                    Lent = false
                 };
                 ApplicationUser user = context.Users.Include(x=>x.Books).FirstOrDefault(x => x.Id == UserId);
                 if (user == null)
@@ -144,11 +145,31 @@ namespace Core.Services
             {
                 List<Guid> userBookIds = context.Users.Include(x=>x.Books).FirstOrDefault(x => x.Id == UserId)
                     .Books.Select(x=>x.BookId).ToList();
+                
                 _logger.Debug($"BookService/GetLibraryFor Found {userBookIds.Count()} for user with Id={UserId}");
                 List<BookDTO> actualBooks = context.Books.Include(x => x.BookImage).Include(x => x.Authors).Where(x => userBookIds.Contains(x.Id))
                     .ToList().Select(ToDTOConverter.ToDTO).ToList();
+                List<UsersBooks> usersBooks = context.UsersBooks.Include(x=>x.LentTo).Include(x=>x.BorrowedFrom).Where(x => userBookIds.Contains(x.BookId)).ToList();
+
                 if (userBookIds.Count() != actualBooks.Count())
                     _logger.Warn($"BookService/GetLibraryFor Found {userBookIds.Count()} book IDs but {actualBooks.Count()} actual books retrieved from DB.");
+                
+                foreach (var book in actualBooks)
+                {
+                    var correspondingUserBook = usersBooks.FirstOrDefault(x => x.BookId == book.Id && x.UserId == UserId);
+                    if (correspondingUserBook != null)
+                    {
+                        book.Lent = correspondingUserBook.Lent;
+                        book.LentTo = correspondingUserBook.LentTo == null ? correspondingUserBook.LentTo.ToDTO() : null;
+                        book.Borrowed = correspondingUserBook.Borrowed;
+                        book.BorrowedFrom = correspondingUserBook.BorrowedFrom == null ? correspondingUserBook.BorrowedFrom.ToDTO() : null;
+                    }
+                    else
+                    {
+                        book.Lent = false;
+                        book.Borrowed = false;
+                    }
+                }
                 return actualBooks;
             }
         }
@@ -163,6 +184,88 @@ namespace Core.Services
                 List<UserDTO> users = context.Users.Where(x => userIds.Contains(x.Id))
                         .ToList().Select(ToDTOConverter.ToDTO).ToList();
                 return users;
+            }
+        }
+
+        public void RequestBorrowBook(string borrower,string lender,Guid bookId)
+        {
+            if (borrower == null || lender==null || bookId == null || borrower == lender)
+                throw new Exception("Cannot make request");
+
+            using (var context = new ApplicationDbContext())
+            {
+                BorrowRequest request = new BorrowRequest()
+                {
+                    BookId = bookId,
+                    BorrowerId = borrower,
+                    LenderId = lender
+                };
+
+                context.BorrowRequests.Add(request);
+                context.SaveChanges();
+            }
+        }
+
+        public List<BorrowRequestDTO> GetBorrowRequests(string userId)
+        {
+            using (var context = new ApplicationDbContext())
+            {
+                List<BorrowRequest> requests = context.BorrowRequests.Where(x => x.LenderId == userId).ToList();
+                List<Guid> bookIds = requests.Select(x => x.BookId).ToList();
+                List<BookDTO> books = context.Books.Where(x => bookIds.Contains(x.Id)).ToList().Select(ToDTOConverter.ToDTO).ToList();
+                List<string> userIds = requests.Select(x => x.BorrowerId).ToList();
+                List<UserDTO> users = context.Users.Where(x => userIds.Contains(x.Id)).ToList().Select(ToDTOConverter.ToDTO).ToList();
+                List<BorrowRequestDTO> result = requests.Select(x => x.ToDTO(books.FirstOrDefault(y => y.Id == x.BookId), users.FirstOrDefault(z => z.Id == x.BorrowerId))).ToList();
+                return result;
+            }
+        }
+
+        public void AcceptBorrowBookRequest(string requester,string borrowFromId,Guid bookId)
+        {
+            if (requester == borrowFromId)
+                throw new Exception("Cannot borrow from self.");
+            using (var context = new ApplicationDbContext())
+            {
+                UsersBooks userBook = context.UsersBooks.FirstOrDefault(x => x.BookId == bookId && x.UserId == borrowFromId);
+                if (userBook == null)
+                {
+                    //LOG
+                    throw new Exception("Cannot find UserBook");
+                }
+
+
+                var book = context.Books.FirstOrDefault(x => x.Id == bookId);
+
+                ApplicationUser borrower = context.Users.FirstOrDefault(x => x.Id == requester);
+                if (borrower == null)
+                {
+                    throw new Exception("Borrower does not exist");
+                }
+
+                userBook.Lent = true;
+                userBook.LentToId = borrower.Id;
+                userBook.LentTo = borrower;
+
+
+                ApplicationUser borrowFrom = context.Users.FirstOrDefault(x => x.Id == borrowFromId);
+                if (borrowFrom == null)
+                {
+                    throw new Exception("BorrowFrom does not exist");
+                }
+                var newUserBook = new UsersBooks()
+                {
+                    BookId = bookId,
+                    UserId = borrower.Id,
+                    Public = true,
+                    Borrowed = true,
+                    BorrowedFrom = borrowFrom,
+                    BorrowedFromId = borrowFromId,
+                    Lent = false,
+                    Book = book
+                };
+                context.UsersBooks.Add(newUserBook);
+              
+                context.SaveChanges();
             }
         }
     }
