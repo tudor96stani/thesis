@@ -209,5 +209,49 @@ namespace Web.Controllers.API
                 return response;
             }
         }
+
+        [HttpPost]
+        [Route("borrow/return")]
+        public HttpResponseMessage ReturnBook(BorrowRequestViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.Error($"BooksController/ReturnBook Bad request: From={model.From},BookId={model.BookId}");
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.BadRequest);
+                return response;
+            }
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
+            try
+            {
+                _bookService.ReturnBook(model.BookId, loggedInUserId, model.From);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK);
+                return response;
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"BooksController/ReturnBook Message={e.Message}");
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
+                return response;
+            }
+        }
+
+        [HttpDelete]
+        [Route("delete")]
+        public HttpResponseMessage DeleteBook(Guid bookId)
+        {
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
+            try
+            {
+                _bookService.DeleteBookFromLibrary(bookId, loggedInUserId);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK);
+                return response;
+            }
+            catch(Exception e)
+            {
+                _logger.Error($"BooksController/DeleteBook Message={e.Message}");
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
+                return response;
+            }
+        }
     }
 }

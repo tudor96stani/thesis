@@ -292,5 +292,42 @@ namespace Core.Services
                 context.SaveChanges();
             }
         }
+
+        public void ReturnBook(Guid BookId,string BorrowerId,string LenderId)
+        {
+            if (BorrowerId == LenderId)
+                throw new Exception("Cannot return to self");
+
+            using (var context = new ApplicationDbContext())
+            {
+                var Borrower = context.UsersBooks.FirstOrDefault(x => x.BookId == BookId && x.UserId == BorrowerId);
+                if (Borrower == null)
+                    throw new Exception("Book not borrowed");
+
+                context.UsersBooks.Remove(Borrower);
+
+                var Lender = context.UsersBooks.FirstOrDefault(x => x.BookId == BookId && x.UserId == LenderId);
+                if (Lender == null)
+                    throw new Exception("Book not lent");
+
+                Lender.Lent = false;
+                Lender.LentToId = null;
+                Lender.LentTo = null;
+                context.SaveChanges();
+            }
+        }
+
+        public void DeleteBookFromLibrary(Guid BookId,string UserId)
+        {
+            using(var context = new ApplicationDbContext())
+            {
+                var UserBook = context.UsersBooks.FirstOrDefault(x => x.BookId == BookId && x.UserId == UserId);
+
+                if (UserBook == null)
+                    throw new Exception("User does not own book");
+                context.UsersBooks.Remove(UserBook);
+                context.SaveChanges();
+            }
+        }
     }
 }
