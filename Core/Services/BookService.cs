@@ -296,19 +296,32 @@ namespace Core.Services
         public void ReturnBook(Guid BookId,string BorrowerId,string LenderId)
         {
             if (BorrowerId == LenderId)
+            {
+                _logger.Warn("BookService/ReturnBook BorrowerId==LenderId " + LenderId);
                 throw new Exception("Cannot return to self");
+            }
 
             using (var context = new ApplicationDbContext())
             {
-                var Borrower = context.UsersBooks.FirstOrDefault(x => x.BookId == BookId && x.UserId == BorrowerId);
+                var Borrower = context.UsersBooks.Include(x=>x.Book).FirstOrDefault(x => x.BookId == BookId && x.UserId == BorrowerId);
                 if (Borrower == null)
+                {
+                    _logger.Warn("BookService/ReturnBook Book not borrowed");
                     throw new Exception("Book not borrowed");
+                }
 
+                var user = context.Users.FirstOrDefault(x => x.Id == BorrowerId);
+                user.BorrowedBooks.Remove(Borrower);
                 context.UsersBooks.Remove(Borrower);
 
-                var Lender = context.UsersBooks.FirstOrDefault(x => x.BookId == BookId && x.UserId == LenderId);
+                var Lender = context.UsersBooks.Include(x=>x.Book).FirstOrDefault(x => x.BookId == BookId && x.UserId == LenderId);
                 if (Lender == null)
+                {
+                    _logger.Warn("BookService/ReturnBook Book not lent");
                     throw new Exception("Book not lent");
+                }
+                var userLender = context.Users.FirstOrDefault(x => x.Id == LenderId);
+                userLender.LentBooks.Remove(Lender);
 
                 Lender.Lent = false;
                 Lender.LentToId = null;
