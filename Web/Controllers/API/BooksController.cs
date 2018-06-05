@@ -41,6 +41,7 @@ namespace Web.Controllers.API
         [Route("{userid}")]
         public List<BookDTO> GetLibraryFor(string userid)
         {
+            userid = userid.ToLower();
             try
             {
                 return _bookService.GetLibraryFor(userid);
@@ -180,6 +181,25 @@ namespace Web.Controllers.API
             {
                 List<BorrowRequestDTO> result = _bookService.GetBorrowRequests(loggedInUserId);
                 HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, result);
+                return response;
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"BooksController/GetBorrowRequests Message={e.Message}");
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
+                return response;
+            }
+        }
+
+        [HttpGet]
+        [Route("borrow/request/count")]
+        public HttpResponseMessage GetNumberOfBorrowRequests()
+        {
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
+            try
+            {
+                int result = _bookService.GetNumberOfBorrowRequests(loggedInUserId);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, new { Number = result });
                 return response;
             }
             catch (Exception e)

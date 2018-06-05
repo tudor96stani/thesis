@@ -145,9 +145,11 @@ namespace Core.Services
             {
                 List<Guid> userBookIds = context.Users.Include(x=>x.Books).FirstOrDefault(x => x.Id == UserId)
                     .Books.Select(x=>x.BookId).ToList();
-                
+                List<UsersBooks> borrowed = context.Users.Include(x => x.BorrowedBooks).FirstOrDefault(x => x.Id == UserId)
+                    .BorrowedBooks.ToList();
                 _logger.Debug($"BookService/GetLibraryFor Found {userBookIds.Count()} for user with Id={UserId}");
-                List<BookDTO> actualBooks = context.Books.Include(x => x.BookImage).Include(x => x.Authors).Where(x => userBookIds.Contains(x.Id))
+                List<BookDTO> actualBooks = context.Books.Include(x => x.BookImage).Include(x => x.Authors)
+                    .Where(x => userBookIds.Contains(x.Id)).OrderBy(x=>x.Title)
                     .ToList().Select(ToDTOConverter.ToDTO).ToList();
                 List<UsersBooks> usersBooks = context.UsersBooks.Include(x=>x.LentTo).Include(x=>x.BorrowedFrom).Where(x => userBookIds.Contains(x.BookId)).ToList();
 
@@ -160,9 +162,9 @@ namespace Core.Services
                     if (correspondingUserBook != null)
                     {
                         book.Lent = correspondingUserBook.Lent;
-                        book.LentTo = correspondingUserBook.LentTo == null ? correspondingUserBook.LentTo.ToDTO() : null;
+                        book.LentTo = correspondingUserBook.LentTo != null ? correspondingUserBook.LentTo.ToDTO() : null;
                         book.Borrowed = correspondingUserBook.Borrowed;
-                        book.BorrowedFrom = correspondingUserBook.BorrowedFrom == null ? correspondingUserBook.BorrowedFrom.ToDTO() : null;
+                        book.BorrowedFrom = correspondingUserBook.BorrowedFrom != null ? correspondingUserBook.BorrowedFrom.ToDTO() : null;
                     }
                     else
                     {
@@ -220,6 +222,15 @@ namespace Core.Services
             }
         }
 
+        public int GetNumberOfBorrowRequests(string userId)
+        {
+            using (var context = new ApplicationDbContext())
+            {
+                int numberOfRequests = context.BorrowRequests.Where(x => x.LenderId == userId).Count();
+                return numberOfRequests;
+            }
+        }
+
         public void AcceptBorrowBookRequest(string requester,string borrowFromId,Guid bookId)
         {
             if (requester == borrowFromId)
@@ -264,7 +275,20 @@ namespace Core.Services
                     Book = book
                 };
                 context.UsersBooks.Add(newUserBook);
-              
+
+                BorrowRequest request = context.BorrowRequests.FirstOrDefault(x => x.BookId == bookId && x.BorrowerId == requester && x.LenderId == borrowFromId);
+                context.BorrowRequests.Remove(request);
+
+
+                Activity activity = new Activity()
+                {
+                    Id = Guid.NewGuid(),
+                    BookId = book.Id,
+                    OwnerId = requester,
+                    TimeStampUTC = DateTime.Now.ToUniversalTime(),
+                    Type = ActivityType.BorrowedBook
+                };
+                context.Activities.Add(activity);
                 context.SaveChanges();
             }
         }
