@@ -172,6 +172,31 @@ namespace Web.Controllers.API
             }
         }
 
+        [HttpPost]
+        [Route("borrow/reject")]
+        public HttpResponseMessage RejectBorrowRequest(BorrowRequestViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.Error($"BooksController/RejectBorrowRequest Bad request: From={model.From},BookId={model.BookId}");
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.BadRequest);
+                return response;
+            }
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
+            try
+            {
+                _bookService.RejectBorrowRequest(model.BookId, model.From,loggedInUserId );
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK);
+                return response;
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"BooksController/RejectBorrowRequest Message={e.Message}");
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
+                return response;
+            }
+        }
+
         [HttpGet]
         [Route("borrow/requests")]
         public HttpResponseMessage GetBorrowRequests()

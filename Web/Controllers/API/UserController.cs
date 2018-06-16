@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Web.Models;
+using Web.Models.ViewModels;
 using Web.Utils;
 
 namespace Web.Controllers.API
@@ -104,7 +105,12 @@ namespace Web.Controllers.API
             try
             {
                 List<UserDTO> result = _userService.GetPendingRequests(loggedInUserId);
-                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, result);
+                var requests = new List<FriendRequestViewModel>();
+                foreach(var user in result)
+                {
+                    requests.Add(new FriendRequestViewModel() { User = user, CommonFriendsCount = _userService.GetNumberOfCommonFriends(loggedInUserId, user.Id) });
+                }
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, requests);
                 return response;
             }
             catch(Exception e)
@@ -152,6 +158,24 @@ namespace Web.Controllers.API
             }
         }
 
+        [HttpPost]
+        [Route("requests/reject")]
+        public HttpResponseMessage RejectRequest(string userId)
+        {
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
+            try
+            {
+                _userService.RejectRequest(loggedInUserId, userId);
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            catch (Exception e)
+            {
+                _logger.Warn($"UserController/RejectRequest Exception message={e.Message}");
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
+                return response;
+            }
+        }
+
         [HttpGet]
         [Route("friends")]
         public HttpResponseMessage GetFriendsFor()
@@ -183,6 +207,25 @@ namespace Web.Controllers.API
                 HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, result);
                 return response;
             }catch(Exception e)
+            {
+                _logger.Warn($"UserController/GetNewsFeed Exception message={e.Message}");
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });
+                return response;
+            }
+        }
+
+        [HttpGet]
+        [Route("friends/common")]
+        public HttpResponseMessage GetNumberOfCommonFriends(string userId)
+        {
+            string loggedInUserId = RequestContext.Principal.Identity.GetUserId();
+            try
+            {
+                var result = _userService.GetNumberOfCommonFriends(loggedInUserId, userId);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, new { Count = result});
+                return response;
+            }
+            catch (Exception e)
             {
                 _logger.Warn($"UserController/GetNewsFeed Exception message={e.Message}");
                 HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.InternalServerError, new { Message = e.Message });

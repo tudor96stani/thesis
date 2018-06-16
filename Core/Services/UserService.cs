@@ -69,6 +69,33 @@ namespace Core.Services
             }
         }
 
+        public void RejectRequest(string Me, string Requester)
+        {
+            using(var context = new ApplicationDbContext())
+            {
+                var friendship = context.Friendships.FirstOrDefault(x => x.User2Id == Me && x.User1Id == Requester);
+                if (friendship == null)
+                {
+                    _logger.Warn($"UserService/AcceptRequest Relationship between Me={Me} and Requester={Requester} does not exist");
+                    throw new Exception("Could not find friendship");
+                }
+
+                if (friendship.Status != RelationshipStatus.Requested)
+                {
+                    _logger.Warn($"UserService/AcceptRequest Relationship status between Me={Me} and Requester={Requester} already Accepted");
+                    throw new Exception("Already friends");
+                }
+                
+                var me = context.Users.Include(x => x.FriendsWithMe).FirstOrDefault(x => x.Id == Me);
+                me.FriendsWithMe.Remove(friendship);
+                var requester = context.Users.Include(x => x.MyFriends).FirstOrDefault(x => x.Id == Requester);
+                requester.MyFriends.Remove(friendship);
+
+                context.Friendships.Remove(friendship);
+                context.SaveChanges();
+            }
+        }
+
         public List<UserDTO> GetPendingRequests(string UserId)
         {
             using (var context = new ApplicationDbContext())
@@ -166,6 +193,25 @@ namespace Core.Services
                 var users = context.Users.Where(x => x.UserName.Contains(query) && x.Id != loggedInUserId)
                         .ToList();
                 return users.Select(x => x.ToDTO()).ToList();
+            }
+        }
+
+        public int GetNumberOfCommonFriends(string me, string other)
+        {
+            if (me==null || other == null || me == other)
+            {
+                throw new Exception("Bad request");
+            }
+            using(var context = new ApplicationDbContext())
+            {
+                var myFriendsIds = context.Friendships.Where(x => x.User1Id == me).Select(x => x.User2Id).ToList();
+                myFriendsIds.Union(context.Friendships.Where(x => x.User2Id == me).Select(x => x.User1Id).ToList());
+
+                var otherFriendsIds = context.Friendships.Where(x => x.User1Id == other).Select(x => x.User2Id).ToList();
+                otherFriendsIds.Union(context.Friendships.Where(x => x.User2Id == other).Select(x => x.User1Id).ToList());
+
+                int result = myFriendsIds.Intersect(otherFriendsIds).Count();
+                return result;
             }
         }
     }

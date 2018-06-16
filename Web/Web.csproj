@@ -225,6 +225,7 @@
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Models\RegisterUserViewModel.cs" />
     <Compile Include="Models\ViewModels\BorrowRequestViewModel.cs" />
+    <Compile Include="Models\ViewModels\FriendRequestViewModel.cs" />
     <Compile Include="Models\ViewModels\NewBookViewModel.cs" />
     <Compile Include="Models\ViewModels\SingleStringParam.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -196,6 +196,15 @@ namespace Core.Services
 
             using (var context = new ApplicationDbContext())
             {
+                UsersBooks userbook = context.UsersBooks.FirstOrDefault(x => x.BookId == bookId && x.UserId == lender);
+                if (userbook == null)
+                {
+                    throw new Exception("User does not own this book");
+                }
+                if(userbook.Borrowed || userbook.Lent)
+                {
+                    throw new Exception("Book is borrowed or lent, cannot make request");
+                }
                 BorrowRequest request = new BorrowRequest()
                 {
                     BookId = bookId,
@@ -291,6 +300,24 @@ namespace Core.Services
                 context.Activities.Add(activity);
                 context.SaveChanges();
             }
+        }
+
+        public void RejectBorrowRequest(Guid BookId, string Borrowerid, string LenderId)
+        {
+            if (Borrowerid == LenderId)
+                throw new Exception("Cannot borrow from self.");
+            using (var context = new ApplicationDbContext())
+            {
+                var request = context.BorrowRequests.FirstOrDefault(x => x.BookId == BookId && x.BorrowerId == Borrowerid && x.LenderId == LenderId);
+                if (request == null)
+                {
+                    throw new Exception("Cannot find request");
+                }
+
+                context.BorrowRequests.Remove(request);
+                context.SaveChanges();
+            }
+
         }
 
         public void ReturnBook(Guid BookId,string BorrowerId,string LenderId)
